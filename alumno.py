@@ -1,3 +1,10 @@
+"""
+Tasca 6 d'APA
+Nom: Sara Lario Garrido
+"""
+
+import re
+
 class Alumno:
     """
     Clase usada para el tratamiento de las notas de los alumnos. Cada uno
@@ -42,3 +49,63 @@ class Alumno:
         completo y la nota media del alumno con un decimal.
         """
         return f'{self.numIden}\t{self.nombre}\t{self.media():.1f}'
+
+def leeAlumnos(ficAlum):
+    """
+    llegeix un fitxer de text amb les dades dels alumnes i retorna un diccionari
+
+    >>> alumnos = leeAlumnos('alumnos.txt')
+    >>> for alumno in alumnos:
+    ...     print(alumnos[alumno])
+    ...
+    171\tBlanca Agirrebarrenetse\t9.5
+    23\tCarles Balcell de Lara\t4.9
+    68\tDavid Garcia Fuster\t7.0
+    """
+    diccionari_alumnes = {}
+    
+    # patró per separar: 1. número ID | 2. nom de l'alumne | 3. notes del final
+    patro = re.compile(r"^\s*(\d+)\s+(.+?)\s+([\d.\s\t]+)$")
+
+    with open(ficAlum, 'r', encoding='utf-8') as f:
+        for linia in f:
+            linia = linia.strip()
+            if not linia:
+                continue
+            
+            match = patro.match(linia)
+            if match:
+                num_iden = int(match.group(1))
+                nombre = match.group(2).strip()
+                notes_str = match.group(3)
+                
+                # busquem tots els números decimals o enters dins la secció de notes
+                notes = [float(n) for n in re.findall(r"\d+\.\d+|\d+", notes_str)]
+                
+                # afegim l'alumne al diccionari utilitzant el seu nom com a clau
+                diccionari_alumnes[nombre] = Alumno(nombre, num_iden, notes)
+                
+    return diccionari_alumnes
+
+
+if __name__ == "__main__":
+    print("--- Executant proves manuals ---")
+    
+    # 1. Cridem la funció per llegir el fitxer que acabem de crear
+    try:
+        meus_alumnes = leeAlumnos('alumnos.txt')
+        
+        # 2. Si ha trobat alumnes, els mostrem un a un per pantalla
+        for nom in meus_alumnes:
+            print(f"Alumne trobat: {nom}")
+            print(f"Dades oficials: {meus_alumnes[nom]}")
+            print("-" * 30)
+            
+    except FileNotFoundError:
+        print("ERROR: No s'ha trobat el fitxer 'alumnos.txt'. Revisa que estigui a la mateixa carpeta!")
+
+    print("\n--- Executant Doctest (Tests obligatoris) ---")
+    # Executa els tests unitaris automàtics
+    import doctest
+    doctest.testmod(optionflags=doctest.NORMALIZE_WHITESPACE, verbose=True)
+    
